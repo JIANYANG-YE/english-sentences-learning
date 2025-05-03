@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useTheme } from '@/hooks/useTheme';
 
 // 模拟数据
 const featuredCourses = [
@@ -97,16 +96,16 @@ const testimonials = [
 export default function ThemeAwareHomePage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  let isDark = false;
+  const [mounted, setMounted] = useState(false);
   
-  try {
-    // 尝试使用主题上下文，如果失败则使用默认值
-    const { isDark: themeIsDark } = useTheme();
-    isDark = themeIsDark;
-  } catch (error) {
-    console.error('主题上下文加载失败:', error);
-    // 继续使用默认值 isDark = false
-  }
+  // 仅在客户端执行，防止服务器端渲染错误
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // 默认使用明亮主题
+  // 当客户端挂载完成后，将使用系统偏好
+  const isDark = mounted && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +113,11 @@ export default function ThemeAwareHomePage() {
       router.push(`/search?q=${encodeURIComponent(searchTerm)}`);
     }
   };
+
+  // 如果未挂载，返回预加载界面以防止水合不匹配
+  if (!mounted) {
+    return <div className="min-h-screen bg-white text-gray-900"></div>;
+  }
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'} transition-colors`}>
