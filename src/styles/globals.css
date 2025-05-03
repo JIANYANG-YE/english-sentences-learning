@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 使用global.css中定义的CSS变量 */
+:root {
+  --background: var(--color-background-light);
+  --foreground: var(--color-text-light);
+}
+
+/* 暗色主题变量 */
+[data-theme="dark"] {
+  --background: var(--color-background-dark);
+  --foreground: var(--color-text-dark);
+}
+
+/* 确保body样式与全局样式保持一致 */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-family-sans);
+  transition: background-color var(--transition), color var(--transition);
+}

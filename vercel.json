@@ -1,0 +1,38 @@
+{
+  "framework": "nextjs",
+  "regions": ["sin1", "hnd1", "iad1"],
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/images/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/blog",
+      "destination": "https://blog.english-sentences-learning.vercel.app",
+      "permanent": true
+    }
+  ],
+  "github": {
+    "silent": true,
+    "autoJobCancelation": true
+  }
+} 

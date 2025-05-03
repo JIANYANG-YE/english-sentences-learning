@@ -1,0 +1,295 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          String        @default("user") // user, admin, teacher
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  courses       UserCourse[]
+  profile       UserProfile?
+  membership    Membership?
+  learningPaths LearningPath[]
+  learningData  LearningData[]
+  learningProgress UserLearningProgress[]
+  courseAccess  UserCourseAccess[]
+}
+
+// NextAuth 账户模型
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// NextAuth 会话模型
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// 学习路径模型
+model LearningPath {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  progress    Float
+  difficulty  Float
+  performance Float
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// 学习数据模型
+model LearningData {
+  id          String   @id @default(cuid())
+  userId      String
+  progress    Float
+  difficulty  Float
+  performance Float
+  lastUpdated DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// 用户配置文件模型
+model UserProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  name                  String
+  learningLevel         String
+  preferredLearningStyle String
+  learningGoals         String[]
+  lastUpdated           DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// 会员模型
+model Membership {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  type           String    // free, basic, premium
+  status         String    // active, expired, cancelled
+  startDate      DateTime
+  endDate        DateTime?
+  paymentId      String?
+  paymentMethod  String?
+  autoRenew      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// 课程模型
+model Course {
+  id               String       @id @default(cuid())
+  title            String
+  description      String
+  coverImage       String?
+  level            String       // beginner, intermediate, advanced
+  category         String
+  tags             String[]
+  price            Float?
+  isFree           Boolean      @default(false)
+  isFeatured       Boolean      @default(false)
+  requiresMembership Boolean     @default(false)
+  publishStatus    String       @default("draft") // draft, published, archived
+  totalLessons     Int          @default(0)
+  authorId         String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  sections         Section[]
+  lessons          Lesson[]
+  users            UserCourse[]
+  coursePackage    CoursePackage? @relation(fields: [packageId], references: [id])
+  packageId        String?
+  userAccess       UserCourseAccess[]
+
+  @@index([authorId])
+  @@index([packageId])
+}
+
+// 课程包模型 - 将多个课程组合成包
+model CoursePackage {
+  id               String       @id @default(cuid())
+  title            String
+  description      String
+  coverImage       String?
+  price            Float?
+  isFree           Boolean      @default(false)
+  requiresMembership Boolean     @default(false)
+  level            String?      // beginner, intermediate, advanced, mixed
+  publishStatus    String       @default("draft") // draft, published, archived
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  courses          Course[]
+  userAccess       UserCourseAccess[]
+
+  @@index([id])
+}
+
+// 课程小节模型
+model Section {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  courseId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons     Lesson[]
+
+  @@index([courseId])
+}
+
+// 课时模型
+model Lesson {
+  id          String    @id @default(cuid())
+  title       String
+  subtitle    String?
+  description String?
+  content     String    // JSON content
+  order       Int
+  duration    Int?      // duration in minutes
+  videoUrl    String?
+  audioUrl    String?
+  coverImage  String?
+  courseId    String
+  sectionId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  section     Section?  @relation(fields: [sectionId], references: [id])
+  sentences   Sentence[]
+  userProgress UserLearningProgress[]
+
+  @@index([courseId])
+  @@index([sectionId])
+}
+
+// 句子模型
+model Sentence {
+  id           String   @id @default(cuid())
+  english      String
+  chinese      String
+  lessonId     String
+  order        Int
+  difficulty   Int      @default(3) // 1-5 scale
+  keywords     String[] // important words/phrases
+  grammarPoints String[] // grammar points
+  tags         String[]
+  audioUrl     String?
+  notes        String?   // additional notes or context
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userProgress UserLearningProgress[]
+
+  @@index([lessonId])
+}
+
+// 用户课程关系模型
+model UserCourse {
+  userId       String
+  courseId     String
+  enrolledAt   DateTime @default(now())
+  lastAccessedAt DateTime?
+  progress     Float    @default(0)
+  completed    Boolean  @default(false)
+  completedAt  DateTime?
+  user         User     @relation(fields: [userId], references: [id])
+  course       Course   @relation(fields: [courseId], references: [id])
+
+  @@id([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// 用户课程访问权限模型
+model UserCourseAccess {
+  id           String   @id @default(cuid())
+  userId       String
+  courseId     String?
+  packageId    String?
+  accessType   String   // purchase, subscription, free
+  startDate    DateTime @default(now())
+  endDate      DateTime?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+  course       Course?  @relation(fields: [courseId], references: [id])
+  coursePackage CoursePackage? @relation(fields: [packageId], references: [id])
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([packageId])
+}
+
+// 用户学习进度模型
+model UserLearningProgress {
+  id           String   @id @default(cuid())
+  userId       String
+  lessonId     String?
+  sentenceId   String?
+  learningMode String   // chinese-to-english, english-to-chinese, grammar, listening, notes
+  attempts     Int      @default(0)
+  correct      Int      @default(0)
+  lastAttempt  DateTime?
+  completedAt  DateTime?
+  timeSpent    Int      @default(0) // time spent in seconds
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+  lesson       Lesson?  @relation(fields: [lessonId], references: [id])
+  sentence     Sentence? @relation(fields: [sentenceId], references: [id])
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([sentenceId])
+} 
