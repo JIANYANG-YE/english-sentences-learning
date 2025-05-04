@@ -145,3 +145,96 @@ npm start
 ## 许可证
 
 本项目采用 MIT 许可证 - 详情请查看 LICENSE 文件
+
+## 功能特点
+
+- 用户账户管理和身份验证
+- 自适应学习系统
+- 课程和课时管理
+- 进度跟踪与分析
+- 会员订阅系统
+- 移动端响应式设计
+
+## 技术栈
+
+- **前端**: Next.js, React, Tailwind CSS
+- **后端**: Node.js, Next.js API Routes
+- **数据库**: MySQL (通过Prisma ORM)
+- **认证**: NextAuth.js / JWT
+- **部署**: Docker, Vercel
+
+## 本地开发
+
+### 前提条件
+
+- Node.js 18+
+- MySQL 8.0+
+- npm 或 yarn
+
+### 安装步骤
+
+1. 克隆仓库:
+   ```
+   git clone https://github.com/yourusername/english-sentences-learning.git
+   cd english-sentences-learning
+   ```
+
+2. 安装依赖:
+   ```
+   npm install
+   ```
+
+3. 配置环境变量:
+   ```
+   cp .env.example .env.local
+   ```
+   编辑 `.env.local` 文件，设置数据库连接等信息。
+
+4. 设置数据库:
+   ```
+   npx prisma migrate dev
+   ```
+
+5. 启动开发服务器:
+   ```
+   npm run dev
+   ```
+
+6. 访问应用程序:
+   在浏览器中打开 [http://localhost:3000](http://localhost:3000)
+
+## 生产环境部署
+
+### 使用Docker
+
+1. 确保已安装Docker和Docker Compose
+
+2. 构建和启动容器:
+   ```
+   docker-compose up -d
+   ```
+
+3. 应用将在 [http://localhost:3000](http://localhost:3000) 运行
+
+### 使用Vercel
+
+1. 连接GitHub仓库到Vercel
+
+2. 配置环境变量:
+   - `DATABASE_URL`: 你的MySQL数据库URL
+   - `NEXTAUTH_URL`: 你的应用URL (如 https://your-app.vercel.app)
+   - `NEXTAUTH_SECRET`: 用于NextAuth的密钥
+
+3. 部署应用程序
+
+## 数据库初始化
+
+首次启动应用时，可以运行示例数据脚本：
+
+```
+node scripts/deploy-db.js
+```
+
+## 后端API
+
+API端点文档请参考 [API.md](API.md)

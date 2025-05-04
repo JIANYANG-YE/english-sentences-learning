@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 // 用户模型
@@ -98,7 +99,7 @@ model UserProfile {
   name                  String
   learningLevel         String
   preferredLearningStyle String
-  learningGoals         String[]
+  learningGoals         String   // 使用JSON字符串存储
   lastUpdated           DateTime @default(now())
   user                  User     @relation(fields: [userId], references: [id])
 
@@ -131,7 +132,7 @@ model Course {
   coverImage       String?
   level            String       // beginner, intermediate, advanced
   category         String
-  tags             String[]
+  tags             String       // 使用JSON字符串存储
   price            Float?
   isFree           Boolean      @default(false)
   isFeatured       Boolean      @default(false)
@@ -219,9 +220,9 @@ model Sentence {
   lessonId     String
   order        Int
   difficulty   Int      @default(3) // 1-5 scale
-  keywords     String[] // important words/phrases
-  grammarPoints String[] // grammar points
-  tags         String[]
+  keywords     String   // 使用JSON字符串存储
+  grammarPoints String   // 使用JSON字符串存储
+  tags         String   // 使用JSON字符串存储
   audioUrl     String?
   notes        String?   // additional notes or context
   createdAt    DateTime @default(now())

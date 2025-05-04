@@ -48,7 +48,6 @@ import {
   AccessTime,
   Check,
   Flag,
-  Timeline,
   TrendingUp,
   TrendingDown,
   TrendingFlat,
